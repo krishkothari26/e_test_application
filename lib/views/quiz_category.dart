@@ -1,4 +1,5 @@
 import 'package:e_test_application/controllers/question_controller.dart';
+import 'package:e_test_application/views/quiz_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
@@ -13,7 +14,10 @@ class QuizCategoryScreen extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
-          SvgPicture.asset("assets/bg.svg"),
+          SvgPicture.asset(
+            "assets/bg.svg",
+            fit: BoxFit.fitWidth,
+          ),
           GridView.builder(
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2),
@@ -21,7 +25,10 @@ class QuizCategoryScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               return Card(
                 child: GestureDetector(
-                  onTap: () {},
+                  onTap: () {
+                    Get.to(QuizScreen(
+                        category: _questionController.savedCategories[index]));
+                  },
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

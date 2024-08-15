@@ -18,6 +18,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     questionController.loadQuestionCategoryFromSharedPreferences();
     super.initState();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,8 +32,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
             itemBuilder: (context, index) {
               return Card(
                 child: ListTile(
-                  onTap: (){
-                    Get.to(AdminScreen(quizCategory: controller.savedCategories[index]));
+                  onTap: () {
+                    Get.to(AdminScreen(
+                        quizCategory: controller.savedCategories[index]));
                   },
                   leading: const Icon(Icons.question_answer),
                   title: Text(controller.savedCategories[index]),
@@ -56,18 +58,19 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   _showDialogBox() {
     Get.defaultDialog(
-        contentPadding: EdgeInsets.symmetric(horizontal: 25, vertical: 25),
-        titlePadding: EdgeInsets.only(top: 15),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 25, vertical: 25),
+        titlePadding: const EdgeInsets.only(top: 15),
         title: "Add Quiz",
         content: Column(
           children: [
             TextFormField(
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintText: "Enter the category name",
               ),
             ),
             TextFormField(
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintText: "Enter the category subtitle",
               ),
             ),
