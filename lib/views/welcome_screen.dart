@@ -52,6 +52,19 @@ class WelcomeScreen extends StatelessWidget {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 10,),
+                  const TextField(
+                    decoration:  InputDecoration(
+                      filled: true,
+                      fillColor: Color(0xFF1C2341),
+                      hintText: "Password",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
                   const Spacer(),
                   GestureDetector(
                     onTap: (){

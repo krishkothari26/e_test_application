@@ -1,40 +1,37 @@
 import 'package:e_test_application/controllers/question_controller.dart';
 import 'package:e_test_application/views/body.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
-class QuizScreen extends StatefulWidget {
+class QuizScreen extends StatelessWidget {
   final String category;
   const QuizScreen({super.key, required this.category});
 
   @override
-  State<QuizScreen> createState() => _QuizScreenState();
-}
-
-class _QuizScreenState extends State<QuizScreen> {
-  QuestionController questionController = Get.put(QuestionController());
-  @override
-  void initState() {
-    questionController.setFilteredQuestions(widget.category);
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    // Initialize the QuestionController and filter questions by category
+    final questionController = Get.put(QuestionController(), permanent: true);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      questionController.setFilteredQuestions(
+          category); // Filter questions after frame rendering
+    });
+
     return Scaffold(
-      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          TextButton(
-              onPressed: questionController.nextQuestion,
-              child: const Text("Skip"))
-        ],
+        title: Text('Quiz: $category'), // Dynamic title
       ),
-      body: const Body(),
+      body: GetBuilder<QuestionController>(
+        builder: (controller) {
+          // Ensure the filtered questions are set before rendering
+          if (controller.filteredQuestion.isEmpty) {
+            return const Center(
+              child: Text('No questions available for this category.'),
+            );
+          }
+          return const Body(); // Render the Body widget
+        },
+      ),
     );
   }
 }

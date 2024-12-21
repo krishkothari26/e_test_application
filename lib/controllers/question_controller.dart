@@ -8,14 +8,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class QuestionController extends GetxController
     with GetSingleTickerProviderStateMixin {
-  //User Interface Codes
+  // Animation Controller
   late AnimationController _animationController;
   late Animation<double> _animation;
   Animation<double> get animation => _animation;
 
+  // Page Controller
   late PageController _pageController;
   PageController get pageController => _pageController;
 
+  // State Variables
   bool _isAnswered = false;
   bool get isAnswered => _isAnswered;
 
@@ -36,127 +38,157 @@ class QuestionController extends GetxController
 
   List<Question> _filteredQuestion = [];
   List<Question> get filteredQuestion => _filteredQuestion;
+
+  // SharedPreferences Keys and Controllers
+  final String _categoryKey = "category_title";
+  final String _subtitleKey = "subtitle";
+  TextEditingController categoryTitleController = TextEditingController();
+  TextEditingController categorySubtitleController = TextEditingController();
+
+  List<String> savedCategories = [];
+  List<String> savedSubtitle = [];
+
+  // UI Text Controllers
   final TextEditingController questionControllerText = TextEditingController();
   final List<TextEditingController> optionControllers =
       List.generate(4, (index) => TextEditingController());
   final TextEditingController correctAnswerController = TextEditingController();
   final TextEditingController quizCategory = TextEditingController();
 
+  @override
+  void onInit() {
+    super.onInit();
+
+    // Initialize Animation Controller
+    _animationController =
+        AnimationController(vsync: this, duration: Duration(seconds: 60));
+    _animation = Tween<double>(begin: 0, end: 1).animate(_animationController)
+      ..addListener(() => update());
+
+    // Initialize PageController
+    _pageController = PageController();
+
+    // Load data from SharedPreferences
+    loadQuestionCategoryFromSharedPreferences();
+    loadQuestionsFromSharedPreferences();
+
+    // Notify UI
+    update();
+  }
+
+  @override
+  void onClose() {
+    _pageController.dispose();
+    _animationController.dispose();
+    super.onClose();
+  }
+
+  // SharedPreferences Methods
   Future<void> saveQuestionToSharedPreferences(Question question) async {
     final prefs = await SharedPreferences.getInstance();
     final questions = prefs.getStringList("questions") ?? [];
-
-    //Convert the questions list to save it into SharedPreferences
     questions.add(jsonEncode(question.toJson()));
     await prefs.setStringList("questions", questions);
   }
 
-  //Admin Dashboard
-  final String _categoryKey = "category_title";
-  final String _subtitleKey = "subtitle";
-  TextEditingController categoryTitleController = TextEditingController();
-  TextEditingController categorySubtitleController = TextEditingController();
-
-  RxList<String> savedCategories = <String>[].obs;
-  RxList<String> savedSubtitle = <String>[].obs;
-
-  void savedQuestionCategoryToSharedPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    savedCategories.add(categoryTitleController.text);
-    savedSubtitle.add(categorySubtitleController.text);
-    await prefs.setStringList(_categoryKey, savedCategories);
-    await prefs.setStringList((_subtitleKey), savedSubtitle);
-
-    categorySubtitleController.clear();
-    categoryTitleController.clear();
-    Get.snackbar("Saved", "Category created successfully");
-  }
-
-  void loadQuestionCategoryFromSharedPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    final categories = prefs.getStringList(_categoryKey) ?? [];
-    final subtitles = prefs.getStringList(_subtitleKey) ?? [];
-
-    savedCategories.assignAll(categories);
-    savedSubtitle.assignAll(subtitles);
+  Future<void> loadQuestionCategoryFromSharedPreferences() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    savedCategories = prefs.getStringList('categories')?.toList() ?? [];
+    savedSubtitle = prefs.getStringList('subtitles')?.toList() ?? [];
     update();
   }
 
   void loadQuestionsFromSharedPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     final questionJson = prefs.getStringList("questions") ?? [];
-
     _questions = questionJson
-        .map((json) => Question.fromJson(jsonDecode(json)))
+        .map((json) => Question.fromJson(jsonDecode(json))) // Deserialize
         .toList();
-    update();
+
+    print("All Questions Loaded: $_questions");
+    update(); // Notify UI to refresh
   }
 
+// Save categories to SharedPreferences
+  void savedQuestionCategoryToSharedPreferences(
+      String categoryName, String categorySubtitle) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // Update in-memory lists
+    savedCategories.add(categoryName);
+    savedSubtitle.add(categorySubtitle);
+
+    // Save to SharedPreferences
+    await prefs.setStringList('categories', savedCategories);
+    await prefs.setStringList('subtitles', savedSubtitle);
+
+    print("Saved Categories: $savedCategories");
+    print("Saved Subtitles: $savedSubtitle");
+
+    update(); // Notify UI to update
+  }
+
+  // Question Management
   List<Question> getQustionByCategory(String category) {
     return _questions
-        .where((question) => question.category == category)
+        .where((question) =>
+            question.category.toLowerCase() == category.toLowerCase())
         .toList();
+  }
+
+  void setFilteredQuestions(String category) {
+    _filteredQuestion =
+        getQustionByCategory(category); // Get questions by category
+
+    if (_filteredQuestion.isEmpty) {
+      print("No questions found for this category: $category");
+    } else {
+      print("Filtered Questions: $_filteredQuestion");
+    }
+
+    _questionNumber.value = 1; // Reset the question number
+    _isAnswered = false; // Reset answer state
+    update();
+
+    if (_filteredQuestion.isNotEmpty) {
+      _animationController.reset();
+      _animationController.forward();
+      _pageController = PageController(); // Reinitialize
+      _pageController.jumpToPage(0); // Reset to the first question
+    }
   }
 
   void checkAns(Question question, int selectedIndex) {
-    _isAnswered = false;
+    _isAnswered = true;
     _correctAns = question.answer;
     _selectedAns = selectedIndex;
 
     if (_correctAns == _selectedAns) _numOfCorrectAns++;
+
     _animationController.stop();
     update();
 
-    Future.delayed(
-      const Duration(seconds: 3),
-      () {
-        nextQuestion();
-      },
-    );
+    Future.delayed(const Duration(seconds: 3), () {
+      nextQuestion();
+    });
   }
 
-  void nextQuestion() async {
-    if (_questionNumber.value != filteredQuestion.length) {
+  void nextQuestion() {
+    if (_questionNumber.value < _filteredQuestion.length) {
       _isAnswered = false;
-
       _pageController.nextPage(
-        duration: const Duration(microseconds: 250),
+        duration: const Duration(milliseconds: 250),
         curve: Curves.ease,
       );
-
       _animationController.reset();
       _animationController.forward().whenComplete(nextQuestion);
     } else {
-      Get.to(const ScorePage());
+      Get.to(() => ScorePage());
     }
   }
 
   void updateTheQnNum(int index) {
     _questionNumber.value = index + 1;
     update();
-  }
-
-  void setFilteredQuestions(String category) {
-    _filteredQuestion = getQustionByCategory(category);
-    _questionNumber.value = 1;
-    update();
-    nextQuestion();
-  }
-
-  @override
-  void onInit() {
-    _animationController =
-        AnimationController(vsync: this, duration: Duration(seconds: 60));
-    _animation = Tween<double>(begin: 0, end: 1).animate(_animationController)
-      ..addListener(
-        () => update,
-      );
-    _animationController.forward().whenComplete(nextQuestion);
-    loadQuestionCategoryFromSharedPreferences();
-    loadQuestionsFromSharedPreferences();
-    _pageController = PageController();
-    update();
-
-    super.onInit();
   }
 }

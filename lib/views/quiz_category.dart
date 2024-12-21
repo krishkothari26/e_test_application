@@ -12,7 +12,17 @@ class QuizCategoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: const Color.fromARGB(229, 37, 55, 72),
+        leading: IconButton(
+            onPressed: () {
+              Get.back();
+            },
+            icon: const Icon(Icons.arrow_back)),
+        title: const Text("Student Dashboard"),
+      ),
       body: Stack(
+        fit: StackFit.expand,
         children: [
           SvgPicture.asset(
             "assets/bg.svg",
@@ -21,6 +31,7 @@ class QuizCategoryScreen extends StatelessWidget {
           GridView.builder(
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2),
+            padding: const EdgeInsets.all(5),
             itemCount: _questionController.savedCategories.length,
             itemBuilder: (context, index) {
               return Card(

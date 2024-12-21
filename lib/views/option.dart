@@ -15,30 +15,30 @@ class Options extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<QuestionController>(
-      init: QuestionController(),
-      builder: (controller) {
-        Color getTheRightColor() {
-          if (controller.isAnswered) {
-            if (index == controller.correctAns) {
-              return kGreenColor;
-            } else if (index == controller.selectedAns &&
-                controller.selectedAns != controller.correctAns) {
-              return kRedColor;
-            }
-          }
-          return kGrayColor;
-        }
+    // Use Get.find() to get the controller
+    QuestionController questionController = Get.find();
 
-        IconData getTheRightIcon() {
-          return getTheRightColor() == kRedColor ? Icons.close : Icons.done;
+    Color getTheRightColor() {
+      if (questionController.isAnswered) {
+        if (index == questionController.correctAns) {
+          return kGreenColor;
+        } else if (index == questionController.selectedAns &&
+            questionController.selectedAns != questionController.correctAns) {
+          return kRedColor;
         }
+      }
+      return kGrayColor;
+    }
 
-        return GestureDetector(
-          onTap: press,
-          child: Container(
-            margin: EdgeInsets.only(top: kDefaultPadding),
-            padding: EdgeInsets.all(kDefaultPadding),
+    IconData getTheRightIcon() {
+      return getTheRightColor() == kRedColor ? Icons.close : Icons.done;
+    }
+
+    return GestureDetector(
+        onTap: press,
+        child: Container(
+            margin: const EdgeInsets.only(top: kDefaultPadding),
+            padding: const EdgeInsets.all(kDefaultPadding),
             decoration: BoxDecoration(
               border: Border.all(color: getTheRightColor()),
               borderRadius: BorderRadius.circular(15),
@@ -69,10 +69,6 @@ class Options extends StatelessWidget {
                         ),
                 )
               ],
-            ),
-          ),
-        );
-      },
-    );
+            )));
   }
 }

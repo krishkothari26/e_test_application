@@ -66,6 +66,17 @@ class AdminScreen extends StatelessWidget {
                   } else if (questionController
                       .correctAnswerController.text.isEmpty) {
                     Get.snackbar("Required", "All Fields are Required");
+                  } else if (int.tryParse(questionController
+                              .correctAnswerController.text) ==
+                          null ||
+                      int.parse(
+                              questionController.correctAnswerController.text) <
+                          0 ||
+                      int.parse(
+                              questionController.correctAnswerController.text) >
+                          3) {
+                    Get.snackbar("Invalid Input",
+                        "Correct Answer must be between 0 and 3");
                   } else {
                     addQuestions();
                   }
@@ -89,19 +100,20 @@ class AdminScreen extends StatelessWidget {
         int.tryParse(questionController.correctAnswerController.text) ?? 1;
 
     //Creating a new Question Instance
-    final Question newQuestion = Question(
-      category: quizCategory,
-      id: DateTime.now().microsecondsSinceEpoch,
-      questions: questionText,
-      options: options,
-      answer: correctAnswer,
-    );
+final Question newQuestion = Question(
+  category: quizCategory,
+  id: DateTime.now().microsecondsSinceEpoch,  // Ensure 'id' is an integer
+  questions: questionText,  // Use 'questions' instead of 'text'
+  options: options,
+  answer: correctAnswer,
+);
+
 
     //Save the question to SharedPreferences
     await questionController.saveQuestionToSharedPreferences(newQuestion);
     Get.snackbar("Added", "Question Added");
     questionController.questionControllerText.clear();
-    questionController.optionControllers.forEach((element){
+    questionController.optionControllers.forEach((element) {
       element.clear();
     });
     questionController.correctAnswerController.clear();

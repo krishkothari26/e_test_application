@@ -1,6 +1,6 @@
 import 'package:e_test_application/controllers/question_controller.dart';
 import 'package:e_test_application/utils/constants.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class ProgressBar extends StatelessWidget {
